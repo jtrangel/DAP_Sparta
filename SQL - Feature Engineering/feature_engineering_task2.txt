@@ -1,0 +1,35 @@
+-- Performing Ordinal/Label encoding on the overallqual column.
+-- Very Poor < Poor < Fair < Below Average < Average < Above Average 
+-- < Good < Very Good < Excellent < Very Excellent
+
+SELECT overallqual, count(*) FROM property_sales
+GROUP BY overallqual;
+
+-- Adding the column that will store the encoded values
+
+ALTER TABLE property_sales
+ADD COLUMN assigned_val INT; 
+
+UPDATE property_sales
+SET assigned_val = 
+	CASE 
+		WHEN overallqual = 'Very Poor' THEN 1
+		WHEN overallqual = 'Poor' THEN 2
+		WHEN overallqual = 'Fair' THEN 3
+		WHEN overallqual = 'Below Average' THEN 4
+		WHEN overallqual = 'Average' THEN 5
+		WHEN overallqual = 'Above Average' THEN 6
+		WHEN overallqual = 'Good' THEN 7
+		WHEN overallqual = 'Very Good' THEN 8
+		WHEN overallqual = 'Excellent' THEN 9
+		WHEN overallqual = 'Very Excellent' THEN 10
+		ELSE NULL END;
+		
+-- Checking if values were update properly. Results are as expected.
+
+SELECT Id, overallqual, assigned_val FROM property_sales
+LIMIT 30;
+
+SELECT overallqual, assigned_val, count(*) FROM property_sales
+GROUP BY overallqual, assigned_val
+ORDER BY assigned_val ASC;

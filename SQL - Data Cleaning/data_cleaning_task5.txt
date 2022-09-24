@@ -1,0 +1,9 @@
+/*Adding the column 'First_Name' and taking first, the substring 
+with title and given names from the name string, then the given name 
+and then the first name from that substring.*/
+
+ALTER TABLE titanic_test
+ADD First_Name VARCHAR(100);
+
+UPDATE titanic_test
+SET First_Name = SPLIT_PART(SPLIT_PART(SPLIT_PART(name, ', ', 2), ' ', 2), ' ', 1);

@@ -1,0 +1,42 @@
+-- Performing Standardization on the numeric columns. 
+
+SELECT * FROM property_sales LIMIT 10;
+
+-- Querying the mean normalization of the numeric columns whilst creating a table of the data.
+
+CREATE TABLE standardized
+AS
+SELECT Id, lotfrontage, lotarea, garagearea, grlivarea, totalbsmtsf, saleprice,
+       ((lotfrontage::float - AVG(lotfrontage::float) OVER())/STDDEV_SAMP(lotfrontage::float) OVER()) 
+	AS lotfrontage_sd,
+       ((lotarea - AVG(lotarea) OVER())/(STDDEV_SAMP(lotarea) OVER())) 
+	AS lotarea_sd,
+       ((garagearea - AVG(garagearea) OVER())/(STDDEV_SAMP(garagearea) OVER()))  
+	AS garagearea_sd,    
+       ((grlivarea - AVG(grlivarea) OVER())/(STDDEV_SAMP(grlivarea) OVER())) 
+	AS grlivarea_sd, 
+       ((totalbsmtsf - AVG(totalbsmtsf) OVER())/(STDDEV_SAMP(totalbsmtsf) OVER())) 
+	AS totalbsmtsf_sd,
+       ((saleprice - AVG(saleprice) OVER())/(STDDEV_SAMP(saleprice) OVER()))  
+	AS saleprice_sd
+FROM property_sales
+GROUP BY Id,lotfrontage, lotarea, garagearea, grlivarea, totalbsmtsf, saleprice;
+
+-- Adding new columns containing standardized values,  then updating these values in the property_sales table
+
+ALTER TABLE property_sales
+ADD COLUMN lotfrontage_sd float,
+ADD COLUMN lotarea_sd float,
+ADD COLUMN garagearea_sd float,
+ADD COLUMN grlivarea_sd float,
+ADD COLUMN totalbsmtsf_sd float,
+ADD COLUMN saleprice_sd float;
+
+UPDATE property_sales a
+SET   (  lotfrontage_sd,   lotarea_sd,   garagearea_sd,   grlivarea_sd,   totalbsmtsf_sd,   saleprice_sd)
+    = (b.lotfrontage_sd, b.lotarea_sd, b.garagearea_sd, b.grlivarea_sd, b.totalbsmtsf_sd, b.saleprice_sd)
+FROM   standardized b
+WHERE  b.id = a.id;
+
+
+

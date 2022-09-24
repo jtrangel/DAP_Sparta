@@ -1,0 +1,54 @@
+-- Performing Mean normalization on the numeric columns. We first deal 
+-- with the 'NA' values in lotfrontage. We use UPDATE to set this as
+-- the average instead.
+
+SELECT * FROM property_sales LIMIT 10;
+
+SELECT lotfrontage, count(*) FROM property_sales
+GROUP BY lotfrontage;
+
+UPDATE property_sales
+SET lotfrontage = (SELECT AVG(lotfrontage::int) 
+		   FROM property_sales
+		   WHERE lotfrontage != 'NA'
+		  )
+WHERE lotfrontage = 'NA';
+
+-- Querying the mean normalization of the numeric columns whilst creating a table of the data.
+
+CREATE TABLE mean_normalized
+AS
+SELECT Id, lotfrontage, lotarea, garagearea, grlivarea, totalbsmtsf, saleprice,
+       ((lotfrontage::float - AVG(lotfrontage::float) OVER())/(MAX(lotfrontage::float) OVER() - MIN(lotfrontage::float) OVER())) 
+	AS lotfrontage_mn,
+       ((lotarea - AVG(lotarea) OVER())/(MAX(lotarea) OVER() - MIN(lotarea) OVER())) 
+	AS lotarea_mn,
+       ((garagearea - AVG(garagearea) OVER())/(MAX(garagearea) OVER() - MIN(garagearea) OVER())) 
+	AS garagearea_mn,    
+       ((grlivarea - AVG(grlivarea) OVER())/(MAX(grlivarea) OVER() - MIN(grlivarea) OVER())) 
+	AS grlivarea_mn, 
+       ((totalbsmtsf - AVG(totalbsmtsf) OVER())/(MAX(totalbsmtsf) OVER() - MIN(totalbsmtsf) OVER())) 
+	AS totalbsmtsf_mn,
+       ((saleprice - AVG(saleprice) OVER())/(MAX(saleprice) OVER() - MIN(saleprice) OVER())) 
+	AS saleprice_mn
+FROM property_sales
+GROUP BY Id,lotfrontage, lotarea, garagearea, grlivarea, totalbsmtsf, saleprice;
+
+-- Adding new columns containing mean normalized values,  then updating these values in the property_sales table
+
+ALTER TABLE property_sales
+ADD COLUMN lotfrontage_mn float,
+ADD COLUMN lotarea_mn float,
+ADD COLUMN garagearea_mn float,
+ADD COLUMN grlivarea_mn float,
+ADD COLUMN totalbsmtsf_mn float,
+ADD COLUMN saleprice_mn float;
+
+UPDATE property_sales a
+SET   (  lotfrontage_mn,   lotarea_mn,   garagearea_mn,   grlivarea_mn,   totalbsmtsf_mn,   saleprice_mn)
+    = (b.lotfrontage_mn, b.lotarea_mn, b.garagearea_mn, b.grlivarea_mn, b.totalbsmtsf_mn, b.saleprice_mn)
+FROM   mean_normalized b
+WHERE  b.id = a.id;
+
+
+

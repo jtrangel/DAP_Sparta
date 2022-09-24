@@ -1,0 +1,46 @@
+-- Performing One-Hot Encoding on the landslope column.
+
+SELECT landslope, count(*) FROM property_sales
+GROUP BY landslope; 
+
+--(1382 gentle, 65 moderate, 13 severe)
+
+ALTER TABLE property_sales
+ADD COLUMN Gentle_slope INT, 
+ADD COLUMN Moderate_slope INT,
+ADD COLUMN Severe_slope INT;
+
+UPDATE property_sales
+SET Gentle_slope = 
+	CASE
+		WHEN landslope = 'Gentle slope' THEN 1 
+		ELSE 0 END;
+UPDATE property_sales
+SET Moderate_slope = 
+	CASE
+		WHEN landslope = 'Moderate Slope' THEN 1 
+		ELSE 0 END;
+UPDATE property_sales
+SET Severe_slope = 
+	CASE
+		WHEN landslope = 'Severe Slope' THEN 1 
+		ELSE 0 END;
+
+-- Checking of values if the appropriate amount was encoded for each category
+-- (1382 gentle, 65 moderate, 13 severe)
+
+SELECT landslope, gentle_slope, 
+moderate_slope, severe_slope 
+FROM property_sales LIMIT 200;
+
+SELECT count(gentle_slope)
+FROM property_sales
+WHERE gentle_slope = 1;
+
+SELECT count(moderate_slope)
+FROM property_sales
+WHERE moderate_slope = 1;
+
+SELECT count(severe_slope)
+FROM property_sales
+WHERE severe_slope = 1;

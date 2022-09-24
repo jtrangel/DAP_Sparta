@@ -1,0 +1,7 @@
+/*Adding the column 'Last_Name' and taking the last name from the name string*/
+
+ALTER TABLE titanic_test
+ADD Last_Name VARCHAR(100);
+
+UPDATE titanic_test
+SET Last_Name = SPLIT_PART(name, ',', 1);

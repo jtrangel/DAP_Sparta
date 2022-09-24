@@ -1,0 +1,23 @@
+/* Checking how many null values in Age(177) and in Cabin (687) */
+SELECT age, COUNT(*) as age_count 
+FROM titanic_test
+GROUP BY age;
+
+SELECT Cabin, COUNT(*) as cabin_count 
+FROM titanic_test
+GROUP BY Cabin;
+
+/* Updating null age values and putting in the average instead, 
+   Updating null cabin values to 'Unknown' */
+
+UPDATE titanic_test
+SET Age = (SELECT AVG(Age) FROM titanic_test WHERE Age IS NOT NULL)
+WHERE Age IS NULL;
+
+UPDATE titanic_test
+SET Cabin = 'Unknown'
+WHERE Cabin IS NULL;
+
+/* Checking if there are still null values in the columns (none are left)*/
+
+SELECT * FROM titanic_test WHERE Age IS NULL OR Cabin IS NULL;

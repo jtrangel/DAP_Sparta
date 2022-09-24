@@ -1,0 +1,60 @@
+-- Performing mean encoding on the overall condition and setting the target as
+-- the sale price. When the sale price is above 180,000 we set the target as 
+-- reached (1), and we will be able to determine some level of correlation
+-- between overall property condition and the saleprice.
+
+SELECT * FROM property_sales LIMIT 50;
+
+ALTER TABLE property_sales
+ADD COLUMN target INT,
+ADD COLUMN meanenc float;
+
+UPDATE property_sales
+SET target = 
+	CASE 
+            WHEN saleprice > 180000 THEN 1
+	ELSE 0 END;
+
+SELECT overallcond,saleprice,target FROM property_sales LIMIT 50;
+
+SELECT overallcond, count(*) FROM property_sales
+WHERE target = 1
+GROUP BY overallcond;
+
+-- Inner query tallies how many of each category in overallcond leads to a target value of 1. 
+-- Afterwards we note that there are a total of 564 values where target = 1.
+-- Quereying these together by division gets us the mean encoding for each of the categories.
+-- We notice that as expected, the better maintained properties often have higher saleprices.
+
+CREATE TABLE dictionary
+AS
+SELECT sub2.overallcond, sub2.tally::float/sub2.total_sum as means
+FROM
+(
+	SELECT sub.overallcond, sub.tally, sum(sub.tally) OVER() as total_sum
+	FROM 
+	(
+		SELECT overallcond, count(*) as tally FROM property_sales
+		WHERE target = 1
+		GROUP BY overallcond
+	) sub
+	GROUP BY sub.overallcond, sub.tally
+) sub2
+GROUP BY sub2.overallcond, sub2.tally, sub2.total_sum
+ORDER BY means DESC
+;
+
+-- The dictionary table maps out the overall condition values to the mean encoding, 1 to 1.
+-- We can then use this table in a JOIN to assign the mean encoding values to each value in
+-- the main table.
+
+UPDATE property_sales 
+SET meanenc = sub.means
+FROM (
+	  SELECT a.id,b.means
+	  FROM property_sales a
+	  LEFT JOIN dictionary b
+	  ON a.overallcond = b.overallcond
+	  ORDER BY a.id
+	 ) sub
+WHERE property_sales.id = sub.id 

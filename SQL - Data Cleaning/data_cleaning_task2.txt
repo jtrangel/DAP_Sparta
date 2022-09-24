@@ -1,0 +1,18 @@
+/*Counting number of different values, 
+Decided to change M(20 values) to male, and F(16 values) to female*/
+
+SELECT Sex, count(*) FROM titanic_test GROUP BY Sex;
+
+/*Standardization*/
+
+UPDATE titanic_test
+sparta-# SET sex ='male' 
+WHERE sex ='M';
+
+UPDATE titanic_test
+sparta-# SET sex ='female' 
+WHERE sex ='F';
+
+/*Checking of values (Values now standardized to 'male' and 'female')*/
+
+SELECT * FROM titanic_test WHERE sex in ('M','F');
