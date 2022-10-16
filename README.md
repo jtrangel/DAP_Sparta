@@ -10,3 +10,4 @@
 #### Some files done locally used for completion of the Coursera IBM Data Engineering Professional Certificate.
 
 * Bash shell scripting 
+* Advanced SQL (Honors path)
